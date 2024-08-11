@@ -4,6 +4,11 @@
   box-sizing: border-box;
 }
 
+@font-face {
+  font-family: "pixel";
+  src: url("assets//fonts/DTM-Mono.otf");
+}
+
 body {
   background-color: black;
 }

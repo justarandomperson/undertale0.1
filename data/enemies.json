@@ -1,0 +1,21 @@
+{
+  "Sans": {
+    "STATS": {
+      "ATK": 1,
+      "DEF": 1
+    },
+    "HP": 1,
+    "ACT": ["Check"],
+    "CHECK": "* The easiest enemy.\n* Can only deal 1 damage."
+  },
+  "Nagito Komaeda": {
+    "STATS": {
+      "ATK": 1,
+      "DEF": 1,
+      "LCK": 999999999
+    },
+    "HP": 1,
+    "ACT": ["Check"],
+    "CHECK": "* The Ultimate Lucky Student.\n* Can't be that lucky. "
+  }
+}

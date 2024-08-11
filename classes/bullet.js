@@ -1,12 +1,12 @@
 export const types = {
   bone: {
     size: {
-      width: 100,
-      height: 50,
+      width: 15,
+      height: 40,
     },
     src: "assets/bullets/bone.png",
     sprites: 1,
-    scale: 1,
+    scale: 2,
   },
   gasterblaster: {
     size: {
@@ -16,6 +16,10 @@ export const types = {
     src: "assets/spritesheets/gasterblaster.png",
     sprites: 5,
     scale: 2.4,
+    sound: "assets/sound/gaster_blaster_hover.mp3",
+  },
+  beam: {
+    sound: "assets/sound/gaster_blaster_fire.mp3",
   },
 };
 
@@ -45,6 +49,7 @@ export class Bullet {
     this.rotation = rotation;
     this.rotation_speed = rotation_speed;
     this.sprite = 0;
+    this.hitbox = types[type].hitbox;
 
     this.image = new Image();
     this.image.src = types[type].src;
@@ -52,7 +57,7 @@ export class Bullet {
     this.lastHit = Date.now();
     this.cooldown = 15;
     if (this.y == "bottom") {
-      this.y = game.box.y + game.box.height - this.height * 1.35;
+      this.y = game.box.y + game.box.height - this.height * this.scale;
     }
   }
 
@@ -92,8 +97,8 @@ export class Bullet {
         this.image,
         (this.width / 2) * -1,
         (this.height / 2) * -1,
-        this.width,
-        this.height
+        this.width * this.scale,
+        this.height * this.scale
       );
     }
 
@@ -136,6 +141,9 @@ export class Beam {
     }
 
     this.changeSize(scale);
+
+    const audio = new Audio(types.beam.sound);
+    audio.play();
   }
 
   changeSize(scale) {
@@ -153,7 +161,8 @@ export class Beam {
         this.width =
           this.gaster_blaster.width / this.gaster_blaster.scale / scale;
         this.x = this.gaster_blaster.x;
-        this.x -= this.width / 2 / scale + 2;
+        if (this.beam_rotation == 180) this.x -= this.width / 2 / scale + 2;
+        else this.x += this.gaster_blaster.width / 2 - this.width / 2 / scale;
       }
       this.beam_scale = scale;
     }
@@ -208,6 +217,9 @@ export class GasterBlaster {
     this.scale = types.gasterblaster.scale;
     this.image = new Image();
     this.image.src = types.gasterblaster.src;
+
+    const audio = new Audio(types.gasterblaster.sound);
+    audio.play();
   }
 
   draw(ctx) {
@@ -277,30 +289,30 @@ export class GasterBlaster {
         }
 
         if (this.rotation % 360 == 90) {
-          if (this.beam) this.beam.width += 4;
-          this.x += 8;
+          if (this.beam) this.beam.width += 5;
+          this.x += 10;
         } else if (this.rotation % 360 == 180) {
-          if (this.beam) this.beam.height += 4;
-          this.y += 8;
+          if (this.beam) this.beam.height += 5;
+          this.y += 10;
         } else if (this.rotation % 360 == 270) {
-          if (this.beam) this.beam.x -= 8;
-          this.x -= 8;
+          if (this.beam) this.beam.x -= 10;
+          this.x -= 10;
         } else if (this.rotation % 360 == 0) {
-          if (this.beam) this.beam.y -= 8;
-          this.y -= 8;
+          if (this.beam) this.beam.y -= 10;
+          this.y -= 10;
         }
 
-        if (this.x < this.game.box.x - 100) {
-          this.game.outbullets[this.game.outbullets.indexOf(this)] = null;
+        if (this.x < this.game.box.x - 500) {
+          this.game.effects[this.game.effects.indexOf(this)] = null;
         }
-        if (this.x > this.game.box.x + this.game.box.width + 100) {
-          this.game.outbullets[this.game.outbullets.indexOf(this)] = null;
+        if (this.x > this.game.box.x + this.game.box.width + 500) {
+          this.game.effects[this.game.effects.indexOf(this)] = null;
         }
-        if (this.y < this.game.box.y - 100) {
-          this.game.outbullets[this.game.outbullets.indexOf(this)] = null;
+        if (this.y < this.game.box.y - 500) {
+          this.game.effects[this.game.effects.indexOf(this)] = null;
         }
-        if (this.y > this.game.box.y + this.game.box.height + 100) {
-          this.game.outbullets[this.game.outbullets.indexOf(this)] = null;
+        if (this.y > this.game.box.y + this.game.box.height + 500) {
+          this.game.effects[this.game.effects.indexOf(this)] = null;
         }
       }
       return;
@@ -312,8 +324,8 @@ export class GasterBlaster {
       this.rotation = this.dest_rotation;
     }
     if (
-      Math.round(this.x) == this.dest_x &&
-      Math.round(this.y) == this.dest_y &&
+      Math.abs(Math.round(this.x) - Math.round(this.dest_x)) < 2 &&
+      Math.abs(Math.round(this.y) - Math.round(this.dest_y)) < 2 &&
       this.rotation % 360 == this.dest_rotation
     ) {
       this.state = "ready";
@@ -325,5 +337,42 @@ export class GasterBlaster {
       if (this.y < this.dest_y) this.y += (this.dest_y - this.y) / 5;
       if (this.y > this.dest_y) this.y -= (this.y - this.dest_y) / 5;
     }
+  }
+}
+
+export class BoneZone {
+  constructor(game, x, y, speed, amount, delay) {
+    this.game = game;
+    this.x = x;
+    this.y = y;
+    this.speed = speed;
+    this.amount = amount;
+    this.delay = delay;
+    this.frameCount = 0;
+    this.bones = [];
+  }
+
+  update() {
+    if (this.frameCount > this.delay) {
+      this.frameCount = 0;
+      if (this.bones.length < this.amount) {
+        const bone = new Bullet(
+          this.game,
+          this.x,
+          this.y,
+          this.speed,
+          "bone",
+          1
+        );
+        this.bones.push(bone);
+        this.game.bullets.push(bone);
+      }
+    }
+    this.frameCount++;
+  }
+  draw(ctx) {
+    this.bones.forEach((bone) => {
+      if (bone) bone.draw(ctx);
+    });
   }
 }

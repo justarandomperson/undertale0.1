@@ -179,12 +179,10 @@ export function detectRectangleCollision(thisRect, otherRect) {
     //algorithm which just deals with sides
     if (thisRect.currRotation === 0 && otherRect.currRotation === 0) {
       if (
-        !(
-          thisRect.x > otherRect.x + otherRect.width ||
-          thisRect.x + thisRect.width < otherRect.x ||
-          thisRect.y > otherRect.y + otherRect.height ||
-          thisRect.y + thisRect.height < otherRect.y
-        )
+        thisRect.x < otherRect.x + otherRect.width &&
+        thisRect.x + thisRect.width > otherRect.x &&
+        thisRect.y < otherRect.y + otherRect.height &&
+        thisRect.y + thisRect.height > otherRect.y
       ) {
         return true;
       }

@@ -1,0 +1,15 @@
+[
+  [
+    {
+      "text": "whoa there, kid.",
+      "speaker": 0
+    },
+    {
+      "text": "are you trying to..\ndisturb our wedding?",
+      "sprite": ["sad"],
+      "speaker": 0
+    },
+    { "text": "Sans..kill him.", "speaker": 1 },
+    { "text": "you got it.", "speaker": 0, "sprite": ["shrug", "wink"] }
+  ]
+]
